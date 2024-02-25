@@ -3,6 +3,7 @@ package me.crispyxyz;
 import javax.swing.*;
 import java.awt.*;
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Objects;
@@ -12,7 +13,6 @@ public class Main extends JFrame {
     private JLabel timeLabel;
     private JButton exitButton;
     private Container container;
-    private boolean isFullScreen;
 
     private int inputForProperty(Component parent, String message) {
         String input = null;
@@ -32,6 +32,8 @@ public class Main extends JFrame {
     }
 
     public Main() {
+        setUndecorated(true);
+
         container = getContentPane();
 
         container.setBackground(Color.BLACK);
@@ -39,14 +41,17 @@ public class Main extends JFrame {
 
         Properties p = new Properties();
         int size_en = 128, size_zh = 32;
+        String filepath = "time-screen.properties";
         try {
-            p.load(new BufferedInputStream(new FileInputStream("time-screen.properties")));
+            File file = new File("time-screen.properties");
+            filepath = file.getAbsolutePath();
+            p.load(new BufferedInputStream(new FileInputStream(file)));
             int local_size_en = Integer.parseInt(p.getProperty("size_en"));
             int local_size_zh = Integer.parseInt(p.getProperty("size_zh"));
             size_en = local_size_en;
             size_zh = local_size_zh;
         } catch (IOException | NumberFormatException e1) {
-            JOptionPane.showMessageDialog(this,"配置文件\"time-screen.properties\"读取失败，将请求手动输入数据。", "时钟", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this,"配置文件"+filepath+"读取失败，将请求手动输入数据。", "时钟", JOptionPane.WARNING_MESSAGE);
             int result = JOptionPane.showConfirmDialog(this, "是否使用默认配置？", "时钟", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
             switch (result) {
                 case JOptionPane.NO_OPTION -> {
@@ -69,8 +74,8 @@ public class Main extends JFrame {
         container.add(BorderLayout.CENTER, timeLabel);
 
         exitButton = new JButton();
-        exitButton.setText("切换全屏");
-        exitButton.addActionListener(e -> fullscreen());
+        exitButton.setText("退出");
+        exitButton.addActionListener(e -> System.exit(0));
         exitButton.setContentAreaFilled(false);
         exitButton.setFont(font_zh);
         exitButton.setForeground(Color.WHITE);
@@ -87,22 +92,11 @@ public class Main extends JFrame {
         frame.setTitle("时钟");
         frame.setResizable(true);
         frame.setSize(800, 600);
+
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        frame.setAlwaysOnTop(true);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         frame.setVisible(true);
-
-        frame.fullscreen();
-    }
-
-    public void fullscreen() {
-        GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        GraphicsDevice device = env.getDefaultScreenDevice();
-        if (device.isFullScreenSupported()) {
-            if(isFullScreen) device.setFullScreenWindow(null);
-            else device.setFullScreenWindow(this);
-            isFullScreen = !isFullScreen;
-        } else {
-            JOptionPane.showMessageDialog(this,"全屏操作失败。");
-        }
     }
 }
